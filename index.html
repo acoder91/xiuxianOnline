@@ -1403,7 +1403,7 @@ function shareResult() {
   const topShorts = lgType.typeKey === 'za' ? '' : lgType.topList.map(k => linggenShort[k]).join('·');
   const titleLinggen = topShorts ? `（${topShorts}）` : '';
 
-  const text = `我在人生修仙等级测试里测出了【${typeName}${titleLinggen} ${maxLevel}】！\n\n五条灵根分别是：\n财灵根：${getLevelFromScore(scores.cai)}\n名灵根：${getLevelFromScore(scores.ming)}\n技灵根：${getLevelFromScore(scores.ji)}\n人灵根：${getLevelFromScore(scores.ren)}\n心灵根：${getLevelFromScore(scores.xin)}\n\n你是哪种灵根？来测测看！`;
+  const text = `我在人生修仙等级测试里测出了【${typeName}${titleLinggen} ${maxLevel}】！\n\n五条灵根分别是：\n财灵根：${getLevelFromScore(scores.cai)}\n名灵根：${getLevelFromScore(scores.ming)}\n技灵根：${getLevelFromScore(scores.ji)}\n人灵根：${getLevelFromScore(scores.ren)}\n心灵根：${getLevelFromScore(scores.xin)}\n\n你是哪种灵根？来测测看！\n${window.location.href}`;
 
   if (navigator.clipboard) {
     navigator.clipboard.writeText(text).then(() => {
