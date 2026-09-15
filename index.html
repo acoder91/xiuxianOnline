@@ -1,0 +1,1457 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>人生修仙等级测试</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #b8def5;
+    --bg-light: #ecf6fd;
+    --bg-card: #fff;
+    --ink: #1a3a5c;
+    --ink-mid: #2980b9;
+    --ink-light: #5dade2;
+    --accent: #e74c3c;
+    --accent-dark: #c0392b;
+    --gold: #f4a261;
+    --white: #ffffff;
+    --border: #1a3a5c;
+  }
+
+  body {
+    font-family: 'Courier New', 'PingFang SC', 'Microsoft YaHei', monospace;
+    background: var(--bg);
+    min-height: 100vh;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* 像素网格背景 */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-image:
+      linear-gradient(rgba(26,58,92,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(26,58,92,0.04) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* 弹幕 */
+  .danmaku-bg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .danmaku {
+    position: absolute;
+    white-space: nowrap;
+    opacity: 0.35;
+    animation: floatLeft linear infinite;
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+    pointer-events: none;
+    text-shadow: 0 0 2px rgba(255,255,255,0.3);
+  }
+  @keyframes floatLeft {
+    from { transform: translateX(100vw); }
+    to { transform: translateX(-200%); }
+  }
+
+  /* 主容器 */
+  .container {
+    max-width: 520px;
+    width: 100%;
+    background: var(--bg-light);
+    border: 4px solid var(--border);
+    border-radius: 4px;
+    box-shadow: 6px 6px 0 var(--border);
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+  }
+
+  /* 顶部像素条 */
+  .top-bar {
+    height: 8px;
+    background: repeating-linear-gradient(90deg,
+      var(--accent) 0, var(--accent) 12px,
+      var(--ink) 12px, var(--ink) 24px,
+      var(--gold) 24px, var(--gold) 36px,
+      var(--ink) 36px, var(--ink) 48px
+    );
+  }
+
+  .inner { padding: 28px 22px; }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .screen.active { animation: slideIn 0.3s ease; }
+
+  /* ========== 首页 ========== */
+  .home-title {
+    font-size: 26px;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: 3px;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .home-subtitle {
+    text-align: center;
+    font-size: 13px;
+    color: var(--ink-mid);
+    font-weight: 600;
+    letter-spacing: 2px;
+    margin-bottom: 22px;
+  }
+
+  @keyframes flicker {
+    from { transform: scaleY(1) scaleX(1); }
+    to { transform: scaleY(1.15) scaleX(0.9); }
+  }
+  .flicker { animation: flicker 0.5s ease-in-out infinite alternate; transform-origin: center bottom; }
+
+  .home-sub {
+    text-align: center;
+    font-size: 12px;
+    color: var(--ink-mid);
+    margin-bottom: 18px;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+
+  /* 灵根展示 */
+  .linggen-showcase {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 22px;
+  }
+
+  .lg-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .lg-chip-icon {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    border: 3px solid var(--border);
+    background: var(--white);
+    transition: transform 0.2s;
+  }
+  .lg-chip:hover .lg-chip-icon { transform: scale(1.1); }
+
+  .lg-chip-name {
+    font-size: 12px;
+    color: var(--ink-mid);
+    font-weight: 700;
+  }
+
+  /* 信息卡 */
+  .info-box {
+    background: var(--white);
+    border: 3px solid var(--border);
+    padding: 18px;
+    margin-bottom: 22px;
+    line-height: 1.8;
+    font-size: 14px;
+    color: var(--ink);
+    position: relative;
+  }
+  .info-box::before {
+    content: 'QUEST INFO';
+    position: absolute;
+    top: -10px;
+    left: 12px;
+    background: var(--bg-light);
+    padding: 0 8px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 1px;
+  }
+  .info-box p { margin-bottom: 6px; }
+  .info-box p:last-child { margin-bottom: 0; }
+  .info-box strong { color: var(--accent-dark); }
+
+  /* 开始按钮 */
+  .start-btn {
+    width: 100%;
+    padding: 16px;
+    border: 3px solid var(--border);
+    background: var(--accent);
+    color: var(--white);
+    font-size: 17px;
+    font-weight: 700;
+    border-radius: 0;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: 2px;
+    box-shadow: 4px 4px 0 var(--border);
+    transition: all 0.1s;
+  }
+  .start-btn:hover {
+    background: var(--accent-dark);
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 var(--border);
+  }
+  .start-btn:active {
+    transform: translate(4px, 4px);
+    box-shadow: 0 0 0 var(--border);
+  }
+
+  /* 境界对照 */
+  .realm-guide {
+    background: var(--white);
+    border: 3px solid var(--border);
+    margin-top: 20px;
+    overflow: hidden;
+  }
+
+  .realm-guide-title {
+    background: var(--ink);
+    color: var(--white);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 8px 14px;
+    letter-spacing: 1px;
+  }
+
+  .realm-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-bottom: 2px solid var(--bg-light);
+    transition: background 0.2s;
+  }
+  .realm-row:last-child { border-bottom: none; }
+  .realm-row:hover { background: var(--bg-light); }
+
+  .realm-badge {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: var(--white);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .realm-name {
+    font-weight: 700;
+    font-size: 14px;
+    min-width: 58px;
+    color: var(--ink);
+  }
+
+  .realm-desc {
+    font-size: 12px;
+    color: var(--ink-mid);
+    flex: 1;
+  }
+
+  /* ========== 题目页 ========== */
+  .quiz-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .quiz-counter {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .quiz-linggen-tag {
+    font-size: 11px;
+    color: var(--white);
+    font-weight: 700;
+    padding: 3px 10px;
+    letter-spacing: 1px;
+  }
+
+  /* 进度条 */
+  .progress-track {
+    display: flex;
+    gap: 3px;
+    margin-bottom: 24px;
+    height: 16px;
+  }
+
+  .progress-cell {
+    flex: 1;
+    background: var(--white);
+    border: 2px solid var(--border);
+    transition: all 0.3s;
+    position: relative;
+  }
+  .progress-cell.done {
+    background: var(--ink);
+  }
+  .progress-cell.current {
+    background: var(--accent);
+    animation: cellBlink 0.8s ease infinite;
+  }
+  @keyframes cellBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+
+  /* 题目框 */
+  .question-box {
+    background: var(--white);
+    border: 3px solid var(--border);
+    padding: 18px;
+    margin-bottom: 18px;
+    position: relative;
+  }
+  .question-box::before {
+    content: 'NPC';
+    position: absolute;
+    top: -10px;
+    left: 12px;
+    background: var(--bg-light);
+    padding: 0 8px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--ink-mid);
+    letter-spacing: 1px;
+  }
+
+  .question-text {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+
+  /* 选项 */
+  .option {
+    width: 100%;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    border: 3px solid var(--border);
+    background: var(--white);
+    color: var(--ink);
+    font-size: 14px;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.1s;
+    box-shadow: 3px 3px 0 var(--border);
+  }
+
+  .option-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--white);
+    background: var(--ink-mid);
+    flex-shrink: 0;
+  }
+
+  .option:hover {
+    background: var(--bg-light);
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--border);
+  }
+  .option:active {
+    transform: translate(3px, 3px);
+    box-shadow: 0 0 0 var(--border);
+  }
+  .option:hover .option-icon {
+    background: var(--accent);
+  }
+
+  /* ========== 结果页 ========== */
+  .result-hero {
+    text-align: center;
+    padding: 4px 0 20px;
+  }
+
+  .result-rank {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--gold);
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 5px 14px;
+    margin-bottom: 12px;
+    border: 2px solid var(--border);
+    letter-spacing: 1px;
+    box-shadow: 3px 3px 0 var(--border);
+  }
+
+  .result-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 4px;
+    letter-spacing: 0px;
+  }
+
+  .result-sub {
+    font-size: 12px;
+    color: var(--ink-mid);
+  }
+
+  /* 内容卡片 */
+  .card {
+    background: var(--white);
+    border: 3px solid var(--border);
+    padding: 16px;
+    margin-bottom: 12px;
+    position: relative;
+    box-shadow: 3px 3px 0 var(--border);
+  }
+
+  .card-label {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--white);
+    background: var(--ink);
+    padding: 3px 10px;
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+  }
+
+  .card-label.accent { background: var(--accent); }
+  .card-label.gold { background: var(--gold); color: var(--ink); }
+
+  .card-body {
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--ink);
+  }
+
+  /* 灵根天赋子卡 */
+  .talent-card {
+    background: var(--bg-light);
+    border: 2px solid var(--border);
+    border-left: 6px solid var(--ink);
+    padding: 12px;
+    margin-bottom: 8px;
+  }
+  .talent-card:last-child { margin-bottom: 0; }
+
+  .talent-name {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .talent-desc {
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--ink);
+  }
+
+  /* 境界详解 */
+  .realm-detail {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 12px 0;
+  }
+
+  .realm-detail-box {
+    border: 2px solid var(--border);
+    padding: 10px;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .realm-detail-box.can { background: #d5f5e3; border-color: #1e8449; }
+  .realm-detail-box.cant { background: #fadbd8; border-color: #c0392b; }
+  .realm-detail-box .label {
+    font-weight: 700;
+    margin-bottom: 4px;
+    font-size: 12px;
+  }
+  .realm-detail-box.can .label { color: #1e8449; }
+  .realm-detail-box.cant .label { color: #c0392b; }
+  .realm-detail-box .text { color: var(--ink); }
+
+  /* 修炼进度 */
+  .realm-progress { margin: 14px 0; }
+
+  .realm-progress-track {
+    height: 18px;
+    background: var(--bg-light);
+    border: 2px solid var(--border);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .realm-progress-fill {
+    height: 100%;
+    background: repeating-linear-gradient(45deg,
+      var(--accent) 0, var(--accent) 8px,
+      var(--accent-dark) 8px, var(--accent-dark) 16px
+    );
+    transition: width 1.2s ease;
+  }
+
+  .realm-progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--ink-mid);
+    margin-top: 6px;
+    font-weight: 700;
+  }
+
+  /* 下一境界 */
+  .next-realm {
+    background: #fef9e7;
+    border: 2px solid var(--gold);
+    padding: 14px;
+    margin-top: 12px;
+    position: relative;
+  }
+  .next-realm::before {
+    content: 'NEXT';
+    position: absolute;
+    top: -10px;
+    left: 12px;
+    background: var(--bg-light);
+    padding: 0 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 1px;
+  }
+
+  .next-realm-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent-dark);
+    margin-bottom: 8px;
+  }
+
+  .next-realm-body {
+    font-size: 13px;
+    line-height: 1.8;
+    color: #78350f;
+  }
+  .next-realm-body strong { color: var(--accent-dark); }
+
+  /* 灵根条 */
+  .linggens-section { margin-bottom: 20px; }
+
+  .linggen-item { margin-bottom: 14px; }
+
+  .linggen-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  .linggen-name {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .linggen-name.star { color: var(--accent-dark); }
+
+  .linggen-star {
+    color: var(--gold);
+    font-size: 14px;
+  }
+
+  .linggen-level {
+    font-size: 12px;
+    color: var(--white);
+    background: var(--ink-mid);
+    padding: 2px 8px;
+    font-weight: 700;
+  }
+
+  .linggen-bar {
+    height: 16px;
+    background: var(--bg-light);
+    border: 2px solid var(--border);
+    overflow: hidden;
+  }
+
+  .linggen-fill {
+    height: 100%;
+    transition: width 1.2s ease;
+  }
+  .lg-cai { background: repeating-linear-gradient(45deg, #f4a261 0, #f4a261 6px, #e76f51 6px, #e76f51 12px); }
+  .lg-ming { background: repeating-linear-gradient(45deg, #9b59b6 0, #9b59b6 6px, #8e44ad 6px, #8e44ad 12px); }
+  .lg-ji { background: repeating-linear-gradient(45deg, #27ae60 0, #27ae60 6px, #229954 6px, #229954 12px); }
+  .lg-ren { background: repeating-linear-gradient(45deg, #e74c3c 0, #e74c3c 6px, #c0392b 6px, #c0392b 12px); }
+  .lg-xin { background: repeating-linear-gradient(45deg, #3498db 0, #3498db 6px, #2980b9 6px, #2980b9 12px); }
+
+  /* 按钮 */
+  .btn-share {
+    width: 100%;
+    padding: 14px;
+    border: 3px solid var(--border);
+    background: var(--ink);
+    color: var(--white);
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: 1px;
+    box-shadow: 4px 4px 0 var(--border);
+    margin-bottom: 10px;
+    transition: all 0.1s;
+  }
+  .btn-share:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 var(--border);
+  }
+  .btn-share:active {
+    transform: translate(4px, 4px);
+    box-shadow: 0 0 0 var(--border);
+  }
+
+  .btn-restart {
+    width: 100%;
+    padding: 14px;
+    border: 3px solid var(--border);
+    background: var(--white);
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: 1px;
+    box-shadow: 4px 4px 0 var(--border);
+    transition: all 0.1s;
+  }
+  .btn-restart:hover {
+    background: var(--bg-light);
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 var(--border);
+  }
+  .btn-restart:active {
+    transform: translate(4px, 4px);
+    box-shadow: 0 0 0 var(--border);
+  }
+
+  .footer {
+    text-align: center;
+    font-size: 11px;
+    color: var(--ink-mid);
+    margin-top: 16px;
+    opacity: 0.6;
+  }
+
+  /* 作者寄语 */
+  .author-note {
+    background: #fef9e7;
+    border: 2px solid var(--gold);
+    padding: 16px;
+    margin-top: 14px;
+    font-size: 13px;
+    color: #78350f;
+    line-height: 1.8;
+    position: relative;
+  }
+  .author-note::before {
+    content: 'NOTE';
+    position: absolute;
+    top: -10px;
+    left: 12px;
+    background: var(--bg-light);
+    padding: 0 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 1px;
+  }
+  .author-note strong { color: var(--accent-dark); }
+
+  .section-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* 响应式 */
+  @media (max-width: 480px) {
+    .home-title { font-size: 22px; letter-spacing: 2px; }
+    .result-title { font-size: 19px; }
+    .question-text { font-size: 16px; }
+    .inner { padding: 22px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 弹幕背景 -->
+<div class="danmaku-bg" id="danmaku-bg"></div>
+
+<div class="container">
+  <div class="top-bar"></div>
+  <div class="inner">
+
+    <!-- ========== 首页 ========== -->
+    <div class="screen active" id="screen-home">
+      <div class="home-title">人生修仙等级测试</div>
+      <div class="home-subtitle">— 测测你的灵根资质 —</div>
+      <div class="home-sub">PRESS START · 共10题 · 约1分钟</div>
+
+      <div class="linggen-showcase">
+        <div class="lg-chip">
+          <div class="lg-chip-icon">💰</div>
+          <div class="lg-chip-name">财</div>
+        </div>
+        <div class="lg-chip">
+          <div class="lg-chip-icon">📢</div>
+          <div class="lg-chip-name">名</div>
+        </div>
+        <div class="lg-chip">
+          <div class="lg-chip-icon">⚔️</div>
+          <div class="lg-chip-name">技</div>
+        </div>
+        <div class="lg-chip">
+          <div class="lg-chip-icon">🤝</div>
+          <div class="lg-chip-name">人</div>
+        </div>
+        <div class="lg-chip">
+          <div class="lg-chip-icon">🧘</div>
+          <div class="lg-chip-name">心</div>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <p>每个人都有五条灵根：<strong>财 · 名 · 技 · 人 · 心</strong></p>
+        <p>有人财灵根冲天，但人灵根炼气——有钱但孤独。</p>
+        <p>有人技灵根金丹，但名灵根炼气——厉害但没人知道。</p>
+        <p>修仙界有个规矩：<strong>你最强的那条灵根，决定你是哪种修士。</strong></p>
+        <p>来测测，你的最强灵根是哪条？</p>
+        <p style="font-size:12px;color:var(--ink-mid);margin-top:10px;">纯属娱乐，请勿对号入座后emo。</p>
+      </div>
+
+      <button class="start-btn" onclick="startTest()">▶ 开始修炼</button>
+    </div>
+
+    <!-- ========== 题目页 ========== -->
+    <div class="screen" id="screen-quiz">
+      <div class="quiz-header">
+        <span class="quiz-counter" id="question-num"></span>
+        <span class="quiz-linggen-tag" id="linggen-tag"></span>
+      </div>
+      <div class="progress-track" id="progress-bar"></div>
+      <div class="question-box">
+        <div class="question-text" id="question-text"></div>
+      </div>
+      <div id="options-container"></div>
+    </div>
+
+    <!-- ========== 结果页 ========== -->
+    <div class="screen" id="screen-result">
+      <div class="result-hero">
+        <div class="result-title" id="result-level"></div>
+        <div class="result-sub" id="result-tag"></div>
+      </div>
+
+      <div class="linggens-section" id="linggens-container">
+        <div class="section-title">📊 灵根修为一览</div>
+      </div>
+
+      <div id="result-cards"></div>
+
+      <div class="realm-guide">
+        <div class="realm-guide-title">RANK · 各境界对照</div>
+        <div class="realm-row">
+          <div class="realm-badge" style="background:#aab7c4;">1</div>
+          <span class="realm-name">炼气期</span>
+          <span class="realm-desc">刚入门，还在摸门道，大部分人在这里</span>
+        </div>
+        <div class="realm-row">
+          <div class="realm-badge" style="background:#5dade2;">2</div>
+          <span class="realm-name">筑基期</span>
+          <span class="realm-desc">有了基础，能自己往前走了</span>
+        </div>
+        <div class="realm-row">
+          <div class="realm-badge" style="background:#2980b9;">3</div>
+          <span class="realm-name">金丹期</span>
+          <span class="realm-desc">独当一面，在小圈子里算一号人物</span>
+        </div>
+        <div class="realm-row">
+          <div class="realm-badge" style="background:#1a3a5c;">4</div>
+          <span class="realm-name">元婴期</span>
+          <span class="realm-desc">专家级，行业内有名有姓</span>
+        </div>
+        <div class="realm-row">
+          <div class="realm-badge" style="background:#f4a261;">5</div>
+          <span class="realm-name">化神期</span>
+          <span class="realm-desc">大佬级，说句话有人听，做件事有人跟</span>
+        </div>
+        <div class="realm-row">
+          <div class="realm-badge" style="background:#e74c3c;">6</div>
+          <span class="realm-name">渡劫期</span>
+          <span class="realm-desc">传说级...你确定你还是凡人吗（彩蛋，非测试可达）</span>
+        </div>
+      </div>
+
+      <div class="author-note">
+        <strong>关于这个测试</strong><br>
+        做着玩的，别当真。五条灵根的划分是我瞎编的，境界标准也是我拍脑袋定的。<br><br>
+        如果你测出炼气期也别难过——化神期的大佬也是从炼气期过来的。<br>
+        如果你测出化神期也别飘——我出题的时候没放水，是你自己选的。<br><br>
+        修仙路漫漫，我们都是在路上的人。
+      </div>
+
+      <div style="margin-top:20px;">
+        <button class="btn-share" onclick="shareResult()">🔗 分享给道友</button>
+        <button class="btn-restart" onclick="restartTest()">🔄 再测一次</button>
+      </div>
+
+      <div class="footer">仅供娱乐 · 别拿这个当人生判决书</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const questions = [
+  {
+    text: "你的存款能支撑你不工作活多久？",
+    linggen: "cai", linggenName: "财灵根",
+    options: [
+      { text: "不到 1 个月", score: 1 },
+      { text: "1-3 个月", score: 2 },
+      { text: "3-6 个月", score: 3 },
+      { text: "半年以上，不慌", score: 4 },
+      { text: "有被动收入，不上班也能活", score: 5 }
+    ]
+  },
+  {
+    text: "你在你的行业/圈子里，有多少人知道你的名字？",
+    linggen: "ming", linggenName: "名灵根",
+    options: [
+      { text: "基本没人认识我", score: 1 },
+      { text: "公司/小圈子里有人知道", score: 2 },
+      { text: "行业内有一些人知道我", score: 3 },
+      { text: "提到某个领域会有人想到我", score: 4 },
+      { text: "圈外人也知道我", score: 5 }
+    ]
+  },
+  {
+    text: "工作中遇到难题，同事第一反应是来找你吗？",
+    linggen: "ji", linggenName: "技灵根",
+    options: [
+      { text: "我自己还搞不定呢", score: 1 },
+      { text: "偶尔有人问我", score: 2 },
+      { text: "经常有人来问，我能独当一面", score: 3 },
+      { text: "我是团队里的技术担当/专家", score: 4 },
+      { text: "整个行业都有人来请教我", score: 5 }
+    ]
+  },
+  {
+    text: "你有多少个可以半夜打电话说心事的人？",
+    linggen: "ren", linggenName: "人灵根",
+    options: [
+      { text: "一个都没有", score: 1 },
+      { text: "1-2 个", score: 2 },
+      { text: "3-5 个", score: 3 },
+      { text: "有一群朋友，还有稳定的伴侣", score: 4 },
+      { text: "我是别人的依靠，有人因为我而不孤单", score: 5 }
+    ]
+  },
+  {
+    text: "你最近一次觉得「人生有意义」是什么时候？",
+    linggen: "xin", linggenName: "心灵根",
+    options: [
+      { text: "不记得了，经常觉得没意思", score: 1 },
+      { text: "偶尔有，但大部分时间迷茫", score: 2 },
+      { text: "大概知道自己要什么，但还是会焦虑", score: 3 },
+      { text: "内心比较稳，不太被别人影响", score: 4 },
+      { text: "每一天都很充实，内心很平静", score: 5 }
+    ]
+  },
+  {
+    text: "买东西的时候，你会先看价格吗？",
+    linggen: "cai", linggenName: "财灵根",
+    options: [
+      { text: "必须看，贵了绝对不买", score: 1 },
+      { text: "会看，但喜欢的话咬牙也买", score: 2 },
+      { text: "一般不看，几千块以内随便买", score: 3 },
+      { text: "基本不看价格，喜欢就买", score: 4 },
+      { text: "钱不是问题，只看想不想要", score: 5 }
+    ]
+  },
+  {
+    text: "你在社交媒体上有多少粉丝/关注者？",
+    linggen: "ming", linggenName: "名灵根",
+    options: [
+      { text: "不到 100 个", score: 1 },
+      { text: "100-1000 个", score: 2 },
+      { text: "1000-1 万", score: 3 },
+      { text: "1 万-10 万", score: 4 },
+      { text: "10 万以上", score: 5 }
+    ]
+  },
+  {
+    text: "你做一件新的事情，能多快上手？",
+    linggen: "ji", linggenName: "技灵根",
+    options: [
+      { text: "很慢，需要别人教很久", score: 1 },
+      { text: "一般，正常速度", score: 2 },
+      { text: "挺快的，学东西对我不难", score: 3 },
+      { text: "很快，而且我能总结出方法教别人", score: 4 },
+      { text: "我看一眼就知道问题在哪，还能改进它", score: 5 }
+    ]
+  },
+  {
+    text: "你一个人待着会觉得孤独吗？",
+    linggen: "ren", linggenName: "人灵根",
+    options: [
+      { text: "经常孤独到难受", score: 1 },
+      { text: "有时候会孤独", score: 2 },
+      { text: "还好，有朋友但不多", score: 3 },
+      { text: "很少孤独，身边有人陪着", score: 4 },
+      { text: "一个人也很充实，同时也有人爱", score: 5 }
+    ]
+  },
+  {
+    text: "别人说你不好，你会难受多久？",
+    linggen: "xin", linggenName: "心灵根",
+    options: [
+      { text: "很久，好几天缓不过来", score: 1 },
+      { text: "会难受一阵，但能自己好", score: 2 },
+      { text: "有点在意，但不影响生活", score: 3 },
+      { text: "基本不往心里去", score: 4 },
+      { text: "完全不影响，我知道自己是谁", score: 5 }
+    ]
+  }
+];
+
+const linggenQuestions = { cai: [0, 5], ming: [1, 6], ji: [2, 7], ren: [3, 8], xin: [4, 9] };
+const linggenNames = { cai: "财灵根", ming: "名灵根", ji: "技灵根", ren: "人灵根", xin: "心灵根" };
+const linggenShort = { cai: "财", ming: "名", ji: "技", ren: "人", xin: "心" };
+const linggenClass = { cai: "lg-cai", ming: "lg-ming", ji: "lg-ji", ren: "lg-ren", xin: "lg-xin" };
+const linggenEmojis = { cai: "💰", ming: "📢", ji: "⚔️", ren: "🤝", xin: "🧘" };
+const linggenTagColors = { cai: "#e76f51", ming: "#8e44ad", ji: "#229954", ren: "#c0392b", xin: "#2980b9" };
+
+const linggenPersonas = {
+  cai: { desc: "你对钱有天然的嗅觉，别人还在纠结买不买，你已经算出三年后的复利了。修仙界里这种修士一般负责管宗门账房，偶尔被师弟师妹借钱不还。" },
+  ming: { desc: "你天生就擅长被看见。在宗门里就是那个新弟子还没入门就听说过的大师兄/大师姐。好处是走路都有人偷看，坏处是偷看的人多了什么奇葩评价都有。" },
+  ji: { desc: "你靠本事吃饭，手上有真功夫。宗门比武你不出场没人敢开打，炼丹房炸了你进去修两下就好了。但这类修士最容易给人留下的印象是：「哦他啊……对了他叫啥来着？」" },
+  ren: { desc: "你天生就是社交天花板，什么场面都能聊两句，谁跟你待着都舒服。宗门聚餐你一坐就是C位，师弟师妹有事第一个找你。唯一的问题是——找你帮忙的人比找掌门的还多，你比掌门还忙但拿的灵石没掌门多。掌门好歹能闭关不见人，你不行。" },
+  xin: { desc: "你对自己看得太清楚了，清楚到有点想闭关。别人还在纠结「我是谁」，你已经到了「我知道我是谁但我懒得解释」的境界。师傅说这是悟性高，师弟说这是想太多。" }
+};
+
+const linggenTypeDescs = {
+  tian: "天灵根——修仙小说里活不过三集就会被魔修盯上的稀有体质。某一条灵根强到离谱，其他都拉胯。好处是修炼飞快，坏处是这条路一旦堵了你连个备选方案都没有。",
+  single: "单灵根——修仙界比较吃香的类型，一条灵根明显比别人强。专精一道，好修好练，就是偶尔会被其他灵根拖后腿。",
+  double: "双灵根——两条灵根都挺猛，在宗门里算少见。双灵根的修士最常说的话是「小孩子才做选择，我两条道都要修」——结果两条道还没修完，隔壁单灵根的已经化神了。",
+  triple: "三灵根——什么都懂一点，什么都不精。修仙界的「还行吧」选手。不过三灵根出过几个狠人，因为他们什么都懂一点后突然顿悟了。",
+  quad: "四灵根——差一条就圆满了。就像打麻将听牌了，就等那最后一张。不过这张牌可能要等一辈子。",
+  hunyuan: "混元灵根——五条灵根齐头并进，每条都强。这在修仙界叫混元灵根，千年难遇。好处是全面发展没有短板，坏处是...其实没坏处，凡尔赛一下。",
+  za: "杂灵根——五条灵根都差不多...都差不多弱。修仙界最常见也最被看不起的资质。但注意：修仙小说的主角十个有八个是杂灵根起步。因为只有杂灵根才需要主角光环。"
+};
+
+const typeNames = { tian: "天灵根", single: "单灵根", double: "双灵根", triple: "三灵根", quad: "四灵根", hunyuan: "混元灵根", za: "杂灵根" };
+
+const levelDescs = {
+  "炼气期": "仙路才刚刚开始，你就是那个刚被师父捡回来的小菜鸡。能感知灵气了，勉强算入了修仙的门，在宗门里是最低级弟子，干杂活的。不过打不过筑基期的，御剑飞不了，出去历练可能被野猪追。",
+  "筑基期": "算是入了个门，至少不会被外门弟子欺负了。能御剑了——但飞不远，能在宗门里领任务了，算是正式弟子。但打不过金丹期的，出不了宗门去大地图闯荡。",
+  "金丹期": "在修仙界算一号人物了。能独当一面了，可以出宗门闯荡了，放小门派能当长老。但元神出不了窍，打不过元婴期的，人家一个眼神你就跪了。",
+  "元婴期": "大能！到这一步的修士，走路都带风。元神出窍，名号在修仙界传开了，可以开宗立派了。但碰不到化神期的边，化神期的大佬一个念头你就要躺三天。",
+  "化神期": "传说中的大佬。打喷嚏都被解读成天机，随口一句被刻成石碑供人参悟三百年。修仙界能到这一步的，百中无一。这已经是测试里的最高境界了，再往上的事儿，谁也说不准。",
+  "渡劫期": "...你是来凡间体验生活的吧？"
+};
+
+const realmDetails = {
+  "炼气期": { can: "能感知灵气了，勉强算入了修仙的门。在宗门里是最低级弟子，干杂活的。", cant: "打不过筑基期的，御剑飞不了，出去历练可能被野猪追。", breakName: "筑基", nextRealm: "筑基期" },
+  "筑基期": { can: "能御剑了——但飞不远。能在宗门里领任务了，算是正式弟子。", cant: "打不过金丹期的，出不了宗门去大地图闯荡。", breakName: "结丹", nextRealm: "金丹期" },
+  "金丹期": { can: "能独当一面了，放小门派能当长老。可以出宗门闯荡了。", cant: "元神出不了窍，打不过元婴期的，人家一个眼神你就跪了。", breakName: "化婴", nextRealm: "元婴期" },
+  "元婴期": { can: "元神出窍！走路带风，名号在修仙界传开了。可以开宗立派了。", cant: "碰不到化神期的边，化神期的大佬一个念头你就要躺三天。", breakName: "化神", nextRealm: "化神期" },
+  "化神期": { can: "打喷嚏都被解读成天机，随口一句被刻成石碑供人参悟三百年。", cant: "修仙界能到这一步的，百中无一。这已经是测试上限了，再往上的境界不在测试范围内。", breakName: null, nextRealm: "渡劫期" }
+};
+
+function getLevelFromScore(score) {
+  if (score <= 3) return "炼气期";
+  if (score <= 5) return "筑基期";
+  if (score <= 7) return "金丹期";
+  if (score <= 9) return "元婴期";
+  return "化神期";
+}
+
+function getLinggenType(scores) {
+  const list = ['cai', 'ming', 'ji', 'ren', 'xin'];
+  const max = Math.max(...list.map(k => scores[k]));
+  const min = Math.min(...list.map(k => scores[k]));
+  const topCount = list.filter(k => scores[k] === max).length;
+  const sorted = list.map(k => ({ key: k, score: scores[k] })).sort((a, b) => b.score - a.score);
+  const gap = sorted[0].score - sorted[1].score;
+  const range = max - min; // 极差
+  const total = list.reduce((sum, k) => sum + scores[k], 0);
+  const avg = total / 5;
+  const topList = sorted.filter(s => s.score === max).map(s => s.key);
+
+  // 五条灵根全部相等：按绝对分拆分高低版本
+  if (topCount === 5) {
+    if (avg >= 6) return { typeKey: 'hunyuan', topList: list };  // 混元灵根（高配，金丹期起步）
+    return { typeKey: 'za', topList: list };                     // 杂灵根（低配）
+  }
+
+  if (topCount === 1 && gap >= 3) return { typeKey: 'tian', topList };
+  if (topCount === 1) return { typeKey: 'single', topList };
+  if (topCount === 2) return { typeKey: 'double', topList };
+  if (topCount === 3) return { typeKey: 'triple', topList };
+  if (topCount === 4) return { typeKey: 'quad', topList };
+  // 兜底：极差=1但不完全相等的情况也归为杂灵根
+  if (range <= 1) return { typeKey: 'za', topList: list };
+  return { typeKey: 'za', topList: list };
+}
+
+function getRealmProgress(score) {
+  let low, high;
+  if (score <= 3) { low = 2; high = 3; }
+  else if (score <= 5) { low = 4; high = 5; }
+  else if (score <= 7) { low = 6; high = 7; }
+  else if (score <= 9) { low = 8; high = 9; }
+  else { return 100; }
+  // 进入该境界即有进度，最低分算50%（已进入），最高分算100%（即将突破）
+  return Math.round((score - low + 1) / (high - low + 1) * 100);
+}
+
+function getNextThreshold(score) {
+  if (score <= 3) return 4;
+  if (score <= 5) return 6;
+  if (score <= 7) return 8;
+  if (score <= 9) return 10;
+  return null;
+}
+
+function getNextLevelPreview(scores, answers, topList) {
+  // 若多条并列最高，按财→名→技→人→心顺序取第一条
+  const order = ['cai', 'ming', 'ji', 'ren', 'xin'];
+  const mainLinggen = order.find(k => topList.includes(k));
+  const mainScore = scores[mainLinggen];
+  const currentLevel = getLevelFromScore(mainScore);
+
+  // 已满分
+  if (mainScore >= 10) {
+    return { isMax: true, currentLevel, mainScore, mainLinggen };
+  }
+
+  const nextThreshold = getNextThreshold(mainScore);
+  if (!nextThreshold) {
+    return { isMax: true, currentLevel, mainScore, mainLinggen };
+  }
+
+  const pointsNeeded = nextThreshold - mainScore;
+  const nextLevel = getLevelFromScore(nextThreshold);
+
+  // 收集所有未满分的题
+  const qIdxs = linggenQuestions[mainLinggen];
+  const allPaths = [];
+
+  for (const qIdx of qIdxs) {
+    const ans = answers[qIdx];
+    const currentScore = ans ? ans.score : 1;
+    if (currentScore >= 5) continue; // 已满分，跳过
+
+    const q = questions[qIdx];
+    const currentAnswer = q.options.find(o => o.score === currentScore);
+    const nextAnswer = q.options.find(o => o.score === currentScore + 1);
+
+    allPaths.push({
+      question: q.text,
+      currentAnswerText: currentAnswer ? currentAnswer.text : '',
+      currentScore: currentScore,
+      nextAnswerText: nextAnswer ? nextAnswer.text : '',
+      nextScore: currentScore + 1
+    });
+  }
+
+  // 按需展示：差1分展示1条，差2分展示2条
+  let upgradePaths = allPaths;
+  let needConsecutive = false;
+  if (pointsNeeded === 1) {
+    // 差1分：只展示第一条
+    upgradePaths = allPaths.slice(0, 1);
+  } else if (pointsNeeded === 2) {
+    // 差2分：展示前两条，若只有1条则标记需连续提升
+    if (allPaths.length >= 2) {
+      upgradePaths = allPaths.slice(0, 2);
+    } else if (allPaths.length === 1) {
+      upgradePaths = allPaths;
+      needConsecutive = true;
+    }
+  } else {
+    // 差3分以上（理论上不会出现，但保险起见）
+    upgradePaths = allPaths.slice(0, 2);
+    needConsecutive = true;
+  }
+
+  return {
+    isMax: false,
+    mainLinggen,
+    mainScore,
+    currentLevel,
+    nextLevel,
+    nextThreshold,
+    pointsNeeded,
+    upgradePaths,
+    needConsecutive
+  };
+}
+
+function getLinggenColor(key) {
+  const colors = { cai: '#e76f51', ming: '#8e44ad', ji: '#229954', ren: '#c0392b', xin: '#2980b9' };
+  return colors[key] || '#1a3a5c';
+}
+
+let currentQuestion = 0;
+let scores = { cai: 0, ming: 0, ji: 0, ren: 0, xin: 0 };
+let answers = {};
+
+function startTest() {
+  currentQuestion = 0;
+  scores = { cai: 0, ming: 0, ji: 0, ren: 0, xin: 0 };
+  answers = {};
+  showScreen("screen-quiz");
+  renderProgressBlocks();
+  renderQuestion();
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  var dm = document.getElementById('danmaku-bg');
+  if (dm) dm.style.display = (id === 'screen-result') ? 'block' : 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderProgressBlocks() {
+  const bar = document.getElementById('progress-bar');
+  bar.innerHTML = '';
+  for (let i = 0; i < questions.length; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'progress-cell';
+    if (i < currentQuestion) cell.classList.add('done');
+    if (i === currentQuestion) cell.classList.add('current');
+    bar.appendChild(cell);
+  }
+}
+
+function renderQuestion() {
+  const q = questions[currentQuestion];
+  document.getElementById('question-num').textContent = `第 ${currentQuestion + 1} / ${questions.length} 题`;
+  const tag = document.getElementById('linggen-tag');
+  tag.textContent = q.linggenName;
+  tag.style.background = linggenTagColors[q.linggen];
+  document.getElementById('question-text').textContent = q.text;
+  renderProgressBlocks();
+
+  const container = document.getElementById('options-container');
+  container.innerHTML = '';
+  const letters = ['A', 'B', 'C', 'D', 'E'];
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option';
+    btn.innerHTML = `<span class="option-icon">${letters[i]}</span><span>${opt.text}</span>`;
+    btn.onclick = () => selectOption(opt.score, q.linggen, i);
+    container.appendChild(btn);
+  });
+}
+
+function selectOption(score, linggen, optionIndex) {
+  scores[linggen] += score;
+  answers[currentQuestion] = { linggen, score, optionIndex };
+  currentQuestion++;
+  if (currentQuestion < questions.length) {
+    renderQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function showResult() {
+  const list = ['cai', 'ming', 'ji', 'ren', 'xin'];
+  const lgType = getLinggenType(scores);
+  const maxScore = Math.max(...list.map(k => scores[k]));
+  const minScore = Math.min(...list.map(k => scores[k]));
+  const maxLevel = getLevelFromScore(maxScore);
+  const minLevel = getLevelFromScore(minScore);
+  const typeName = typeNames[lgType.typeKey];
+  const topShorts = lgType.typeKey === 'za' ? '' : lgType.topList.map(k => linggenShort[k]).join('·');
+  const titleLinggen = topShorts ? `（${topShorts}）` : '';
+  const gap = maxScore - minScore;
+  const total = list.reduce((sum, k) => sum + scores[k], 0);
+
+  document.getElementById('result-level').textContent = `${typeName}${titleLinggen} ${maxLevel}`;
+  document.getElementById('result-tag').textContent = '你的最强灵根决定你是哪种修士';
+
+  const cardsContainer = document.getElementById('result-cards');
+  cardsContainer.innerHTML = '';
+
+  // 卡片1：灵根类型
+  const card1 = document.createElement('div');
+  card1.className = 'card';
+  card1.innerHTML = `
+    <div class="card-label">🔮 灵根类型</div>
+    <div class="card-body">${linggenTypeDescs[lgType.typeKey]}</div>
+  `;
+  cardsContainer.appendChild(card1);
+
+  // 卡片2：灵根天赋
+  const card2 = document.createElement('div');
+  card2.className = 'card';
+  card2.innerHTML = `<div class="card-label accent">✨ 灵根天赋</div>`;
+  if (lgType.typeKey === 'za') {
+    const talent = document.createElement('div');
+    talent.className = 'talent-card';
+    talent.innerHTML = `<div class="talent-desc">你的灵根都差不多，没有特别突出的天赋方向。修仙小说的主角十个有八个是杂灵根起步——因为只有杂灵根才需要主角光环。</div>`;
+    card2.appendChild(talent);
+  } else {
+    lgType.topList.forEach(key => {
+      const talent = document.createElement('div');
+      talent.className = 'talent-card';
+      talent.style.borderLeftColor = getLinggenColor(key);
+      talent.innerHTML = `
+        <div class="talent-name" style="color:${getLinggenColor(key)}">
+          ${linggenEmojis[key]} 【${linggenNames[key]} ★】
+        </div>
+        <div class="talent-desc">${linggenPersonas[key].desc}</div>
+      `;
+      card2.appendChild(talent);
+    });
+  }
+  cardsContainer.appendChild(card2);
+
+  // 卡片3：偏科提示
+  const card3 = document.createElement('div');
+  card3.className = 'card';
+  const weakest = list.find(k => scores[k] === minScore);
+  let pkText = '';
+  if (lgType.typeKey === 'hunyuan') {
+    pkText = `五条灵根齐头并进，每条都是${maxLevel}（${maxScore}分/满分10分）。这是混元灵根，别人想找你的弱点都找不到。非要挑个毛病的话——全面发展也意味着没有一招鲜的爆点。`;
+  } else if (lgType.typeKey === 'za') {
+    pkText = `五条灵根全都是${maxLevel}（${maxScore}分/满分10分），谁也别笑谁。偏科？不存在。但均衡地弱也是一种本事——至少别人找不到你的破绽，因为你全身都是破绽。`;
+  } else if (gap >= 4) {
+    const isHighLevel = maxScore >= 8; // 元婴期及以上算高境界
+    if (isHighLevel) {
+      pkText = `${linggenNames[weakest]}只有${minLevel}（${minScore}分/满分10分），跟最强灵根差了${gap}分。高境界偏科，属于「一招鲜」型修士——强的地方极强，弱的地方也不拉胯到哪去。`;
+    } else {
+      pkText = `你这灵根配置，偏科偏到被罚抄经。${linggenNames[weakest]}只有${minLevel}（${minScore}分/满分10分），跟最强灵根差了${gap}分。`;
+    }
+  } else if (gap >= 2) {
+    pkText = `你的${linggenNames[weakest]}是${minLevel}（${minScore}分/满分10分），跟最强灵根差了${gap}分。不算太离谱，但宗门比武的时候可能被人偷家。`;
+  } else {
+    pkText = `五条灵根差距极小（极差仅${gap}分），基本齐平。没有特别拉胯的——但也别高兴太早，均衡不等于强。`;
+  }
+  card3.innerHTML = `
+    <div class="card-label gold">⚡ 偏科提示</div>
+    <div class="card-body">${pkText}</div>
+  `;
+  cardsContainer.appendChild(card3);
+
+  // 卡片4：境界详解
+  const card4 = document.createElement('div');
+  card4.className = 'card';
+  const realm = realmDetails[maxLevel];
+  const realmProgress = getRealmProgress(maxScore);
+  let realmHTML = `<div class="card-label">🏔️ 境界详解</div>`;
+  realmHTML += `<div class="card-body" style="margin-bottom:12px;">${levelDescs[maxLevel]}</div>`;
+
+  // 下一境界预览
+  const preview = getNextLevelPreview(scores, answers, lgType.topList);
+  if (preview.isMax) {
+    realmHTML += `<div class="next-realm">
+      <div class="next-realm-title">🏆 本灵根已到设定上限：${preview.currentLevel}（${preview.mainScore}分/满分10分）</div>
+      <div class="next-realm-body">其他灵根可继续查看。</div>
+    </div>`;
+  } else if (preview.nextLevel) {
+    let previewBody = `
+      你现在：${preview.currentLevel}（${preview.mainScore}分/满分10分）<br>
+      还差：<strong>${preview.pointsNeeded} 分</strong><br>
+    `;
+    preview.upgradePaths.forEach((path, i) => {
+      previewBody += `<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);">
+        题目${i + 1}：「${path.question}」<br>
+        你选了：${path.currentAnswerText}（${path.currentScore}分）<br>
+        下一级选项：${path.nextAnswerText}（${path.nextScore}分，+1）
+      </div>`;
+    });
+    if (preview.needConsecutive) {
+      previewBody += `<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);color:var(--ink-mid);">
+        ⚠️ 可提升的题目不足，需要连续突破同一道题才能升级。
+      </div>`;
+    }
+    previewBody += `<div style="margin-top:8px;font-size:11px;color:var(--ink-mid);">这是设定里的升级路径，不是人生建议。</div>`;
+
+    realmHTML += `<div class="next-realm">
+      <div class="next-realm-title">⬆️ 下一级预览：${preview.nextLevel}（需${preview.nextThreshold}分/满分10分）</div>
+      <div class="next-realm-body">${previewBody}</div>
+    </div>`;
+  }
+
+  card4.innerHTML = realmHTML;
+  cardsContainer.appendChild(card4);
+
+  // 灵根条
+  const linggensContainer = document.getElementById('linggens-container');
+  linggensContainer.innerHTML = '<div class="section-title">📊 灵根修为一览</div>';
+
+  list.forEach(key => {
+    const score = scores[key];
+    const percent = (score / 10) * 100;
+    const lingLevel = getLevelFromScore(score);
+    const isTop = lgType.typeKey !== 'za' && lgType.topList.includes(key);
+
+    const item = document.createElement('div');
+    item.className = 'linggen-item';
+    item.innerHTML = `
+      <div class="linggen-header">
+        <span class="linggen-name${isTop ? ' star' : ''}">
+          ${linggenEmojis[key]} ${linggenNames[key]}${isTop ? ' <span class="linggen-star">★</span>' : ''}
+        </span>
+        <span class="linggen-level">${lingLevel} · ${score}分/满分10分</span>
+      </div>
+      <div class="linggen-bar">
+        <div class="linggen-fill ${linggenClass[key]}" style="width:0%"></div>
+      </div>
+    `;
+    linggensContainer.appendChild(item);
+
+    setTimeout(() => {
+      item.querySelector('.linggen-fill').style.width = Math.min(percent, 100) + '%';
+    }, 100);
+  });
+
+  setTimeout(() => {
+  }, 200);
+
+  // 综合修为
+  const avg = (total / 5).toFixed(1);
+  const overallLevel = getLevelFromScore(Math.round(total / 5));
+  const overallDiv = document.createElement('div');
+  overallDiv.className = 'card';
+  overallDiv.style.marginTop = '12px';
+  let overallHTML = `<div class="card-label">📊 综合修为</div>`;
+  overallHTML += `<div class="card-body">主境界：${maxLevel}（最强灵根 ${maxScore}分/满分10分）<br>综合修为：${overallLevel}（总分 ${total}分/满分50分，五条灵根平均${avg}分）</div>`;
+  const explainText = maxLevel === overallLevel
+    ? `主境界看最强灵根，代表你的优势路径。综合修为看五条灵根平均，代表整体稳定度。两者一致，说明你发展很均衡，属于稳扎稳打型。`
+    : `主境界看最强灵根，代表你的优势路径。综合修为看五条灵根平均，代表整体稳定度。两者不一致是正常的，偏科修士都这样。`;
+  overallHTML += `<div style="margin-top:8px;padding:10px 12px;background:var(--bg-light);border-left:3px solid var(--border);font-size:12px;color:var(--ink-mid);line-height:1.7;">${explainText}</div>`;
+  overallDiv.innerHTML = overallHTML;
+  linggensContainer.appendChild(overallDiv);
+
+  showScreen('screen-result');
+}
+
+function shareResult() {
+  const list = ['cai', 'ming', 'ji', 'ren', 'xin'];
+  const lgType = getLinggenType(scores);
+  const maxScore = Math.max(...list.map(k => scores[k]));
+  const maxLevel = getLevelFromScore(maxScore);
+  const typeName = typeNames[lgType.typeKey];
+  const topShorts = lgType.typeKey === 'za' ? '' : lgType.topList.map(k => linggenShort[k]).join('·');
+  const titleLinggen = topShorts ? `（${topShorts}）` : '';
+
+  const text = `我在人生修仙等级测试里测出了【${typeName}${titleLinggen} ${maxLevel}】！\n\n五条灵根分别是：\n财灵根：${getLevelFromScore(scores.cai)}\n名灵根：${getLevelFromScore(scores.ming)}\n技灵根：${getLevelFromScore(scores.ji)}\n人灵根：${getLevelFromScore(scores.ren)}\n心灵根：${getLevelFromScore(scores.xin)}\n\n你是哪种灵根？来测测看！`;
+
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => {
+      alert('结果已复制到剪贴板，快去分享给道友吧！');
+    }).catch(() => {
+      alert(text);
+    });
+  } else {
+    alert(text);
+  }
+}
+
+function restartTest() {
+  startTest();
+}
+
+// 弹幕
+const danmakuTexts = [
+  "此子恐怖如斯", "道友请留步", "我杂灵根我不服", "天灵根去哪了",
+  "筑基期瑟瑟发抖", "化神期大佬带带我", "修仙界卷死了",
+  "又是炼气期的一天", "金丹期在此", "杂灵根也是根",
+  "结丹好难啊", "元婴期走路带风", "炼气期也想翻盘",
+  "师弟借的灵石还没还", "掌门又闭关了", "外门弟子路过",
+  "这测试有毒", "我天灵根呢", "请问渡劫在哪挂号"
+];
+const danmakuColors = ["#1a3a5c", "#e74c3c", "#f4a261", "#2980b9", "#c0392b"];
+
+function initDanmaku() {
+  const bg = document.getElementById('danmaku-bg');
+  if (!bg) return;
+  bg.innerHTML = '';
+  danmakuTexts.forEach((text, i) => {
+    const span = document.createElement('span');
+    span.className = 'danmaku';
+    span.textContent = text;
+    span.style.top = (Math.random() * 90 + 2) + '%';
+    span.style.color = danmakuColors[i % danmakuColors.length];
+    span.style.animationDuration = (20 + Math.random() * 20) + 's';
+    span.style.animationDelay = (Math.random() * 15) + 's';
+    span.style.animationFillMode = 'backwards';
+    span.style.transform = 'translateX(100vw)';
+    span.style.fontSize = (13 + Math.random() * 4) + 'px';
+    bg.appendChild(span);
+  });
+}
+
+initDanmaku();
+document.getElementById('danmaku-bg').style.display = 'none';
+</script>
+</body>
+</html>
